@@ -12,6 +12,45 @@ from app.core.exceptions import RateLimitError, ValidationError, ErrorCode
 logger = logging.getLogger(__name__)
 
 
+async def check_rate_limit(user_id: str) -> Tuple[bool, str]:
+    """
+    Check if user can make a transcription request.
+    
+    Args:
+        user_id: User ID
+        
+    Returns:
+        Tuple of (can_proceed, message)
+    """
+    try:
+        await check_transcription_rate_limit(user_id)
+        return True, ""
+    except RateLimitError as e:
+        return False, str(e)
+
+
+async def increment_rate_limit(user_id: str):
+    """Increment rate limit counter."""
+    await increment_transcription_count(user_id)
+
+
+async def check_concurrent_jobs(user_id: str) -> Tuple[bool, str]:
+    """
+    Check if user can start a new job.
+    
+    Args:
+        user_id: User ID
+        
+    Returns:
+        Tuple of (can_proceed, message)
+    """
+    try:
+        await check_concurrent_jobs_limit(user_id)
+        return True, ""
+    except ValidationError as e:
+        return False, str(e)
+
+
 async def check_transcription_rate_limit(user_id: str) -> Tuple[bool, int]:
     """
     Check if user has exceeded transcription rate limit.

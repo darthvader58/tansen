@@ -52,6 +52,11 @@ def get_storage_bucket():
     return _storage_bucket
 
 
+def get_storage_client():
+    """Get Firebase Storage bucket instance (alias for get_storage_bucket)."""
+    return get_storage_bucket()
+
+
 def verify_firebase_token(id_token: str) -> dict:
     """
     Verify Firebase ID token and return decoded token.

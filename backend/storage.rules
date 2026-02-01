@@ -1,0 +1,50 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidAudioFile() {
+      return request.resource.size < 50 * 1024 * 1024 && // 50MB max
+             request.resource.contentType.matches('audio/.*');
+    }
+    
+    // Audio files - publicly readable by authenticated users
+    match /audio/{songId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only backend can write
+    }
+    
+    // User uploads - private to the user
+    match /user_uploads/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidAudioFile();
+      allow delete: if isOwner(userId);
+    }
+    
+    // Notation files - publicly readable by authenticated users
+    match /notations/{songId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only backend can write
+    }
+    
+    // Instrumental files - publicly readable by authenticated users
+    match /instrumental/{songId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only backend can write
+    }
+    
+    // Separated audio files - publicly readable by authenticated users
+    match /separated/{songId}/{instrument}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only backend can write
+    }
+  }
+}

@@ -1,7 +1,7 @@
 """
 Security utilities for authentication and authorization.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -28,13 +28,14 @@ def create_access_token(user_id: str, email: str) -> str:
     Returns:
         JWT token string
     """
-    expiration = datetime.utcnow() + timedelta(days=settings.jwt_expiration_days)
+    now = datetime.now(timezone.utc)
+    expiration = now + timedelta(days=settings.jwt_expiration_days)
     
     payload = {
         "sub": user_id,
         "email": email,
         "exp": expiration,
-        "iat": datetime.utcnow(),
+        "iat": now,
     }
     
     token = jwt.encode(

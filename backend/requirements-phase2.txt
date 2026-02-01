@@ -1,0 +1,39 @@
+# Phase 2: Transcription Pipeline Dependencies
+
+# Audio Processing
+librosa==0.10.1
+soundfile==0.12.1
+pydub==0.25.1
+audioread==3.0.1
+
+# AI/ML Libraries for Transcription
+basic-pitch==0.2.5
+tensorflow==2.20.0  # Required by basic-pitch (latest for Python 3.13)
+
+# Source Separation
+demucs==4.0.1
+torch>=2.1.0  # Required by demucs
+torchaudio>=2.1.0  # Required by demucs
+
+# Music Analysis
+essentia==2.1b6.dev1389  # Latest available version
+music21==9.1.0
+mingus==0.6.1
+
+# YouTube Integration
+yt-dlp==2023.11.16
+
+# External Music APIs
+spotipy==2.23.0
+musicbrainzngs==0.7.1
+
+# Additional HTTP clients
+aiohttp==3.9.1
+
+# Task Queue (already in minimal but ensuring it's here)
+flower==2.0.1
+
+# Development tools
+pytest-cov==4.1.0
+black==23.11.0
+flake8==6.1.0
