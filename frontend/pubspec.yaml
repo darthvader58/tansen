@@ -42,10 +42,10 @@ dependencies:
   dio: ^5.4.0
   dio_cache_interceptor: ^3.5.0
   
-  # Authentication
-  google_sign_in: ^6.2.1
-  firebase_core: ^2.24.2
-  firebase_auth: ^4.16.0
+  # Authentication (commented out for demo)
+  # google_sign_in: ^6.2.1
+  # firebase_core: ^2.24.2
+  # firebase_auth: ^4.16.0
   
   # Storage
   shared_preferences: ^2.2.2
