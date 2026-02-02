@@ -1,11 +1,11 @@
 """
-Practice feedback API endpoints.
+Practice feedback API endpoints using Hume AI.
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from typing import Optional
 from ...core.security import get_current_user
 from ...models.user import User
-from ...services.practice_feedback_service import PracticeFeedbackService
+from ...services.hume_practice_service import HumePracticeService
 from ...core.firebase import get_firestore_client, get_storage_bucket
 import logging
 import tempfile
@@ -13,7 +13,7 @@ import os
 from datetime import datetime
 
 router = APIRouter()
-practice_service = PracticeFeedbackService()
+hume_service = HumePracticeService()
 logger = logging.getLogger(__name__)
 
 @router.post("/feedback")
@@ -74,13 +74,16 @@ async def analyze_practice_performance(
                 ref_audio_blob.download_to_filename(tmp_ref.name)
                 ref_audio_path = tmp_ref.name
             
-            # Analyze performance
-            logger.info(f"Analyzing practice performance for user {current_user.uid}, song {song_id}")
-            analysis_result = practice_service.analyze_performance(
+            # Analyze performance using Hume AI
+            logger.info(f"Analyzing practice performance with Hume AI for user {current_user.uid}, song {song_id}")
+            
+            # Use asyncio to run the async Hume service
+            import asyncio
+            analysis_result = asyncio.run(hume_service.analyze_performance(
                 user_audio_path=user_audio_path,
                 reference_audio_path=ref_audio_path,
                 instrument=instrument
-            )
+            ))
             
             # Save practice session to Firestore
             practice_session = {

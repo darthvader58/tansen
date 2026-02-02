@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/theme_service.dart';
 import '../../providers/practice_provider.dart';
+import '../practice/ai_teaching_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -17,7 +18,7 @@ class ProfileScreen extends StatelessWidget {
         slivers: [
           // Profile Header
           SliverAppBar(
-            expandedHeight: 200,
+            expandedHeight: 220,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
@@ -31,37 +32,41 @@ class ProfileScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: AppTheme.white,
-                        child: const Icon(
-                          Icons.person,
-                          size: 50,
-                          color: AppTheme.primaryBlue,
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 20.0, top: 8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: AppTheme.white,
+                          child: const Icon(
+                            Icons.person,
+                            size: 40,
+                            color: AppTheme.primaryBlue,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Music Learner',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.white,
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Music Learner',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.white,
+                          ),
                         ),
-                      ),
-                      const Text(
-                        'Intermediate • Piano',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.paleBlue,
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Intermediate • Piano',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.paleBlue,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -149,33 +154,36 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildStatCard(String value, String label, IconData icon, Color color) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: 32),
+              child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               value,
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               label,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 10,
                 color: AppTheme.mediumGray,
               ),
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -582,379 +590,6 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-// AI Teaching Screen
-class AITeachingScreen extends StatefulWidget {
-  const AITeachingScreen({super.key});
-
-  @override
-  State<AITeachingScreen> createState() => _AITeachingScreenState();
-}
-
-class _AITeachingScreenState extends State<AITeachingScreen> {
-  bool _isRecording = false;
-  bool _isAnalyzing = false;
-  bool _hasResults = false;
-  
-  Map<String, dynamic>? _analysisResults;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI Practice Coach'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Song Selection
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Select a song to practice',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ListTile(
-                      leading: Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppTheme.lightBlue, AppTheme.primaryBlue],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.music_note, color: AppTheme.white),
-                      ),
-                      title: const Text('Imagine'),
-                      subtitle: const Text('John Lennon • Piano'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Recording Section
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    if (!_hasResults) ...[
-                      const Text(
-                        'Record Your Performance',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Play along with the song and we\'ll analyze your performance',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.mediumGray,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
-                      
-                      // Recording Button
-                      GestureDetector(
-                        onTap: _toggleRecording,
-                        child: Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: _isRecording
-                                  ? [AppTheme.errorRed, AppTheme.errorRed.withValues(alpha: 0.7)]
-                                  : [AppTheme.primaryBlue, AppTheme.darkBlue],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (_isRecording ? AppTheme.errorRed : AppTheme.primaryBlue)
-                                    .withValues(alpha: 0.3),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            _isRecording ? Icons.stop : Icons.mic,
-                            size: 60,
-                            color: AppTheme.white,
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      Text(
-                        _isRecording ? 'Recording... Tap to stop' : 'Tap to start recording',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      
-                      if (_isAnalyzing) ...[
-                        const SizedBox(height: 32),
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 16),
-                        const Text('Analyzing your performance...'),
-                      ],
-                    ] else ...[
-                      _buildAnalysisResults(),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _toggleRecording() {
-    setState(() {
-      if (_isRecording) {
-        _isRecording = false;
-        _isAnalyzing = true;
-        
-        // Simulate analysis
-        Future.delayed(const Duration(seconds: 3), () {
-          setState(() {
-            _isAnalyzing = false;
-            _hasResults = true;
-            _analysisResults = {
-              'overall_score': 85,
-              'note_accuracy': 88,
-              'tempo_consistency': 82,
-              'rhythm_precision': 85,
-              'feedback': [
-                'Great job! Your note accuracy is excellent.',
-                'Try to maintain a more consistent tempo in measures 12-16.',
-                'Your rhythm is solid, keep practicing!',
-              ],
-              'improvements': [
-                {'measure': '12-16', 'issue': 'Tempo variation', 'suggestion': 'Use a metronome'},
-                {'measure': '24', 'issue': 'Missed note', 'suggestion': 'Practice this section slowly'},
-              ],
-            };
-          });
-        });
-      } else {
-        _isRecording = true;
-      }
-    });
-  }
-
-  Widget _buildAnalysisResults() {
-    final score = _analysisResults!['overall_score'] as int;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Performance Analysis',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 24),
-        
-        // Overall Score
-        Center(
-          child: Column(
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    height: 120,
-                    child: CircularProgressIndicator(
-                      value: score / 100,
-                      strokeWidth: 12,
-                      backgroundColor: AppTheme.lightGray,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        score >= 80 ? AppTheme.successGreen : AppTheme.accentOrange,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '$score',
-                    style: const TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Overall Score',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        const SizedBox(height: 32),
-        
-        // Detailed Metrics
-        _buildMetricBar('Note Accuracy', _analysisResults!['note_accuracy'] as int),
-        const SizedBox(height: 12),
-        _buildMetricBar('Tempo Consistency', _analysisResults!['tempo_consistency'] as int),
-        const SizedBox(height: 12),
-        _buildMetricBar('Rhythm Precision', _analysisResults!['rhythm_precision'] as int),
-        
-        const SizedBox(height: 32),
-        
-        // Feedback
-        const Text(
-          'Feedback',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...(_analysisResults!['feedback'] as List).map((feedback) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.check_circle, color: AppTheme.successGreen, size: 20),
-                const SizedBox(width: 8),
-                Expanded(child: Text(feedback as String)),
-              ],
-            ),
-          );
-        }),
-        
-        const SizedBox(height: 24),
-        
-        // Improvements
-        const Text(
-          'Areas to Improve',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...(_analysisResults!['improvements'] as List).map((improvement) {
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.warning_amber, color: AppTheme.accentOrange, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Measure ${improvement['measure']}',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text('Issue: ${improvement['issue']}'),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Suggestion: ${improvement['suggestion']}',
-                    style: const TextStyle(color: AppTheme.primaryBlue),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-        
-        const SizedBox(height: 24),
-        
-        // Action Buttons
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () {
-                  setState(() {
-                    _hasResults = false;
-                    _analysisResults = null;
-                  });
-                },
-                child: const Text('Try Again'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Done'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMetricBar(String label, int value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 14)),
-            Text('$value%', style: const TextStyle(fontWeight: FontWeight.w600)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: value / 100,
-            minHeight: 8,
-            backgroundColor: AppTheme.lightGray,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              value >= 80 ? AppTheme.successGreen : AppTheme.accentOrange,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
