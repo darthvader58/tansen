@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/theme_service.dart';
 import '../../providers/song_provider.dart';
 import '../../models/song.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -84,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
           
           _buildNavItem(Icons.add_circle_outline, 'Create Transcription', 3, isDark),
           _buildNavItem(Icons.favorite_border, 'Liked Songs', 4, isDark),
+          _buildNavItem(Icons.person_outline, 'Profile', 5, isDark),
           
           const Spacer(),
           
@@ -158,6 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return const TranscribeTab();
       case 4:
         return const LikedSongsTab();
+      case 5:
+        return const ProfileScreen();
       default:
         return const HomeTab();
     }
@@ -165,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBottomNav() {
     return BottomNavigationBar(
-      currentIndex: _selectedIndex > 4 ? 0 : _selectedIndex,
+      currentIndex: _selectedIndex > 5 ? 0 : _selectedIndex,
       onTap: (index) {
         setState(() {
           _selectedIndex = index;
@@ -190,8 +194,8 @@ class _HomeScreenState extends State<HomeScreen> {
           label: 'Create',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.favorite),
-          label: 'Liked',
+          icon: Icon(Icons.person),
+          label: 'Profile',
         ),
       ],
     );

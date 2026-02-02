@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     youtube_api_key: str = ""
     spotify_client_id: str = ""
     spotify_client_secret: str = ""
+    hume_api_key: str = ""
     
     # Audio Processing
     max_audio_file_size_mb: int = 50

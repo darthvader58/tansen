@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/theme_service.dart';
+import '../../providers/practice_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -9,6 +10,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final practiceProvider = Provider.of<PracticeProvider>(context);
     
     return Scaffold(
       body: CustomScrollView(
@@ -71,28 +73,28 @@ class ProfileScreen extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Stats Overview
-                _buildStatsSection(),
+                _buildStatsSection(practiceProvider),
                 
                 const SizedBox(height: 32),
                 
                 // Practice Progress
                 _buildSectionHeader('Practice Progress', 'Your learning journey'),
                 const SizedBox(height: 16),
-                _buildProgressChart(),
+                _buildProgressChart(practiceProvider),
                 
                 const SizedBox(height: 32),
                 
                 // Instruments Practiced
                 _buildSectionHeader('Instruments', 'What you\'ve been practicing'),
                 const SizedBox(height: 16),
-                _buildInstrumentsGrid(),
+                _buildInstrumentsGrid(practiceProvider),
                 
                 const SizedBox(height: 32),
                 
                 // Recent Activity
                 _buildSectionHeader('Recent Activity', 'Your practice sessions'),
                 const SizedBox(height: 16),
-                _buildRecentActivity(),
+                _buildRecentActivity(practiceProvider),
                 
                 const SizedBox(height: 32),
                 
@@ -117,14 +119,29 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsSection() {
+  Widget _buildStatsSection(PracticeProvider provider) {
     return Row(
       children: [
-        Expanded(child: _buildStatCard('127', 'Practice Hours', Icons.access_time, AppTheme.primaryBlue)),
+        Expanded(child: _buildStatCard(
+          provider.getTotalPracticeHours().toString(),
+          'Practice Hours',
+          Icons.access_time,
+          AppTheme.primaryBlue
+        )),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('23', 'Songs Learned', Icons.music_note, AppTheme.successGreen)),
+        Expanded(child: _buildStatCard(
+          provider.getSongsLearnedCount().toString(),
+          'Songs Learned',
+          Icons.music_note,
+          AppTheme.successGreen
+        )),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('15', 'Day Streak', Icons.local_fire_department, AppTheme.accentOrange)),
+        Expanded(child: _buildStatCard(
+          provider.getCurrentStreak().toString(),
+          'Day Streak',
+          Icons.local_fire_department,
+          AppTheme.accentOrange
+        )),
       ],
     );
   }
@@ -189,7 +206,9 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressChart() {
+  Widget _buildProgressChart(PracticeProvider provider) {
+    final weeklyData = provider.getWeeklyPracticeData();
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -207,20 +226,18 @@ class ProfileScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _buildBarChart('Mon', 45, 100),
-                _buildBarChart('Tue', 60, 100),
-                _buildBarChart('Wed', 30, 100),
-                _buildBarChart('Thu', 75, 100),
-                _buildBarChart('Fri', 50, 100),
-                _buildBarChart('Sat', 90, 100),
-                _buildBarChart('Sun', 65, 100),
-              ],
+              children: weeklyData.map((data) {
+                return _buildBarChart(
+                  data['day'] as String,
+                  (data['minutes'] as int).toDouble(),
+                  100,
+                );
+              }).toList(),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Average: 59 minutes/day',
-              style: TextStyle(
+            Text(
+              'Average: ${weeklyData.map((d) => d['minutes'] as int).reduce((a, b) => a + b) ~/ weeklyData.length} minutes/day',
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppTheme.mediumGray,
               ),
@@ -259,13 +276,41 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInstrumentsGrid() {
-    final instruments = [
-      {'name': 'Piano', 'hours': 45, 'icon': Icons.piano, 'color': AppTheme.primaryBlue},
-      {'name': 'Guitar', 'hours': 32, 'icon': Icons.music_note, 'color': AppTheme.successGreen},
-      {'name': 'Vocals', 'hours': 28, 'icon': Icons.mic, 'color': AppTheme.accentOrange},
-      {'name': 'Drums', 'hours': 15, 'icon': Icons.album, 'color': AppTheme.errorRed},
-    ];
+  Widget _buildInstrumentsGrid(PracticeProvider provider) {
+    final instrumentData = provider.getInstrumentBreakdown();
+    final instruments = instrumentData.entries.map((entry) {
+      IconData icon;
+      Color color;
+      
+      switch (entry.key.toLowerCase()) {
+        case 'piano':
+          icon = Icons.piano;
+          color = AppTheme.primaryBlue;
+          break;
+        case 'guitar':
+          icon = Icons.music_note;
+          color = AppTheme.successGreen;
+          break;
+        case 'vocals':
+          icon = Icons.mic;
+          color = AppTheme.accentOrange;
+          break;
+        case 'drums':
+          icon = Icons.album;
+          color = AppTheme.errorRed;
+          break;
+        default:
+          icon = Icons.music_note;
+          color = AppTheme.primaryBlue;
+      }
+      
+      return {
+        'name': entry.key,
+        'hours': entry.value,
+        'icon': icon,
+        'color': color,
+      };
+    }).toList();
 
     return GridView.builder(
       shrinkWrap: true,
@@ -325,16 +370,38 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentActivity() {
-    final activities = [
-      {'song': 'Imagine', 'artist': 'John Lennon', 'duration': '45 min', 'date': 'Today'},
-      {'song': 'Let It Be', 'artist': 'The Beatles', 'duration': '30 min', 'date': 'Yesterday'},
-      {'song': 'Wonderwall', 'artist': 'Oasis', 'duration': '25 min', 'date': '2 days ago'},
-    ];
+  Widget _buildRecentActivity(PracticeProvider provider) {
+    final sessions = provider.practiceHistory.take(3).toList();
+    
+    if (sessions.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Center(
+            child: Column(
+              children: [
+                Icon(
+                  Icons.music_note_outlined,
+                  size: 48,
+                  color: AppTheme.mediumGray.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'No practice sessions yet',
+                  style: TextStyle(
+                    color: AppTheme.mediumGray,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Card(
       child: Column(
-        children: activities.map((activity) {
+        children: sessions.map((session) {
           return ListTile(
             leading: Container(
               width: 48,
@@ -348,12 +415,14 @@ class ProfileScreen extends StatelessWidget {
               child: const Icon(Icons.music_note, color: AppTheme.white),
             ),
             title: Text(
-              activity['song']!,
+              session['song_title'] ?? 'Unknown Song',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text('${activity['artist']} • ${activity['duration']}'),
+            subtitle: Text(
+              '${session['instrument'] ?? 'Unknown'} • Score: ${session['overall_score'] ?? 0}',
+            ),
             trailing: Text(
-              activity['date']!,
+              _formatDate(session['timestamp']),
               style: const TextStyle(
                 fontSize: 12,
                 color: AppTheme.mediumGray,
@@ -363,6 +432,22 @@ class ProfileScreen extends StatelessWidget {
         }).toList(),
       ),
     );
+  }
+  
+  String _formatDate(dynamic timestamp) {
+    if (timestamp == null) return 'Unknown';
+    try {
+      final date = DateTime.parse(timestamp.toString());
+      final now = DateTime.now();
+      final diff = now.difference(date);
+      
+      if (diff.inDays == 0) return 'Today';
+      if (diff.inDays == 1) return 'Yesterday';
+      if (diff.inDays < 7) return '${diff.inDays} days ago';
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return 'Unknown';
+    }
   }
 
   Widget _buildAITeachingCard(BuildContext context) {

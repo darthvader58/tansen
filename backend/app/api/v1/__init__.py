@@ -1,7 +1,7 @@
 """API v1 routes."""
 from fastapi import APIRouter
 
-from app.api.v1 import auth, transcriptions, songs, users, downloads, recommendations
+from app.api.v1 import auth, transcriptions, songs, users, downloads, recommendations, practice
 
 api_router = APIRouter()
 
@@ -12,3 +12,4 @@ api_router.include_router(songs.router, prefix="/songs", tags=["Songs"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(downloads.router, prefix="/downloads", tags=["Downloads"])
 api_router.include_router(recommendations.router, prefix="/recommendations", tags=["Recommendations"])
+api_router.include_router(practice.router, prefix="/practice", tags=["Practice"])

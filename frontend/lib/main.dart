@@ -4,6 +4,7 @@ import 'core/theme/app_theme.dart';
 import 'core/services/api_service.dart';
 import 'core/services/theme_service.dart';
 import 'providers/song_provider.dart';
+import 'providers/practice_provider.dart';
 import 'screens/home/home_screen.dart';
 
 void main() {
@@ -27,6 +28,9 @@ class TansenApp extends StatelessWidget {
           create: (context) => SongProvider(
             apiService: context.read<ApiService>(),
           )..fetchSongs(),
+        ),
+        ChangeNotifierProvider<PracticeProvider>(
+          create: (_) => PracticeProvider()..fetchPracticeStats(),
         ),
       ],
       child: Consumer<ThemeService>(

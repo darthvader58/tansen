@@ -11,7 +11,14 @@ import tensorflow as tf
 
 class PracticeFeedbackService:
     def __init__(self):
-        self.model = tf.saved_model.load(str(ICASSP_2022_MODEL_PATH))
+        self._model = None
+    
+    @property
+    def model(self):
+        """Lazy load the model only when needed."""
+        if self._model is None:
+            self._model = tf.saved_model.load(str(ICASSP_2022_MODEL_PATH))
+        return self._model
     
     def analyze_performance(
         self,
