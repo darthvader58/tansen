@@ -15,47 +15,185 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeTab(),
-    const LibraryTab(),
-    const TranscribeTab(),
-    const ProfileTab(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_music_outlined),
-            activeIcon: Icon(Icons.library_music),
-            label: 'Library',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            activeIcon: Icon(Icons.add_circle),
-            label: 'Transcribe',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
+      body: Row(
+        children: [
+          // Spotify-style sidebar (only on larger screens)
+          if (MediaQuery.of(context).size.width > 768)
+            _buildSidebar(context, isDark),
+          
+          // Main content
+          Expanded(
+            child: _buildMainContent(),
           ),
         ],
       ),
+      // Bottom nav for mobile
+      bottomNavigationBar: MediaQuery.of(context).size.width <= 768
+          ? _buildBottomNav()
+          : null,
+    );
+  }
+
+  Widget _buildSidebar(BuildContext context, bool isDark) {
+    return Container(
+      width: 240,
+      color: isDark ? AppTheme.spotifyBlack : AppTheme.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Logo
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.primaryBlue, AppTheme.darkBlue],
+                    ),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.music_note,
+                    color: AppTheme.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Tansen',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+          ),
+          
+          // Navigation items
+          _buildNavItem(Icons.home, 'Home', 0, isDark),
+          _buildNavItem(Icons.search, 'Search', 1, isDark),
+          _buildNavItem(Icons.library_music, 'Your Library', 2, isDark),
+          
+          const SizedBox(height: 24),
+          
+          _buildNavItem(Icons.add_circle_outline, 'Create Transcription', 3, isDark),
+          _buildNavItem(Icons.favorite_border, 'Liked Songs', 4, isDark),
+          
+          const Spacer(),
+          
+          // Theme toggle
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Consumer<ThemeService>(
+              builder: (context, themeService, _) {
+                return ListTile(
+                  leading: Icon(
+                    themeService.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                    color: isDark ? AppTheme.spotifyLightGray : AppTheme.mediumGray,
+                  ),
+                  title: Text(
+                    themeService.isDarkMode ? 'Light Mode' : 'Dark Mode',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? AppTheme.spotifyLightGray : AppTheme.mediumGray,
+                    ),
+                  ),
+                  onTap: () => themeService.toggleTheme(),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, int index, bool isDark) {
+    final isSelected = _selectedIndex == index;
+    
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isSelected
+            ? AppTheme.primaryBlue
+            : (isDark ? AppTheme.spotifyLightGray : AppTheme.mediumGray),
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected
+              ? AppTheme.primaryBlue
+              : (isDark ? AppTheme.spotifyLightGray : AppTheme.mediumGray),
+        ),
+      ),
+      selected: isSelected,
+      selectedTileColor: isDark
+          ? AppTheme.spotifyGray.withValues(alpha: 0.3)
+          : AppTheme.lightGray,
+      onTap: () {
+        setState(() {
+          _selectedIndex = index;
+        });
+      },
+    );
+  }
+
+  Widget _buildMainContent() {
+    switch (_selectedIndex) {
+      case 0:
+        return const HomeTab();
+      case 1:
+        return const SearchTab();
+      case 2:
+        return const LibraryTab();
+      case 3:
+        return const TranscribeTab();
+      case 4:
+        return const LikedSongsTab();
+      default:
+        return const HomeTab();
+    }
+  }
+
+  Widget _buildBottomNav() {
+    return BottomNavigationBar(
+      currentIndex: _selectedIndex > 4 ? 0 : _selectedIndex,
+      onTap: (index) {
+        setState(() {
+          _selectedIndex = index;
+        });
+      },
+      type: BottomNavigationBarType.fixed,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.search),
+          label: 'Search',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.library_music),
+          label: 'Library',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.add_circle),
+          label: 'Create',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.favorite),
+          label: 'Liked',
+        ),
+      ],
     );
   }
 }
@@ -65,182 +203,141 @@ class HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeService = Provider.of<ThemeService>(context);
     final songProvider = Provider.of<SongProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return CustomScrollView(
       slivers: [
+        // Spotify-style gradient header
         SliverAppBar(
-          floating: true,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          elevation: 0,
-          title: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.music_note,
-                  color: AppTheme.white,
-                  size: 20,
+          expandedHeight: 200,
+          pinned: true,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppTheme.primaryBlue,
+                    isDark ? AppTheme.spotifyBlack : AppTheme.white,
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                'Tansen',
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-            ],
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(
-                themeService.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-              ),
-              onPressed: () => themeService.toggleTheme(),
-              tooltip: 'Toggle theme',
-            ),
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined),
-              onPressed: () {},
-            ),
-          ],
-        ),
-
-        SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Welcome Section
-              Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.primaryBlue, AppTheme.darkBlue],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Welcome back!',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.white,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Ready to learn something new today?',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppTheme.paleBlue,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        _buildStatCard('7', 'Day Streak', Icons.local_fire_department),
-                        const SizedBox(width: 12),
-                        _buildStatCard('${songProvider.songs.length}', 'Songs Available', Icons.music_note),
-                      ],
+                    Text(
+                      _getGreeting(),
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                            color: AppTheme.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ],
                 ),
               ),
+            ),
+          ),
+        ),
 
-              // Song Library
-              _buildSection(context, 'Song Library', 'Browse available songs'),
-              const SizedBox(height: 12),
+        SliverPadding(
+          padding: const EdgeInsets.all(24.0),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              // Quick access cards (Spotify-style)
+              _buildQuickAccessSection(context, songProvider),
               
-              if (songProvider.isLoading && songProvider.songs.isEmpty)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32.0),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              else if (songProvider.error != null)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.error_outline, size: 48, color: AppTheme.errorRed),
-                        const SizedBox(height: 16),
-                        Text(
-                          songProvider.error!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: AppTheme.errorRed),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => songProvider.fetchSongs(),
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else if (songProvider.songs.isEmpty)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32.0),
-                    child: Text('No songs available'),
-                  ),
-                )
-              else
-                _buildSongList(songProvider.songs),
-
-              const SizedBox(height: 24),
-            ],
+              const SizedBox(height: 40),
+              
+              // Made for you
+              _buildSectionHeader(context, 'Made For You', 'Your personalized picks'),
+              const SizedBox(height: 16),
+              _buildSongGrid(songProvider.songs.take(6).toList()),
+              
+              const SizedBox(height: 40),
+              
+              // Recently played
+              _buildSectionHeader(context, 'Recently Played', 'Jump back in'),
+              const SizedBox(height: 16),
+              _buildHorizontalSongList(songProvider.songs.take(5).toList()),
+              
+              const SizedBox(height: 40),
+              
+              // Popular
+              _buildSectionHeader(context, 'Popular Right Now', 'Trending in the community'),
+              const SizedBox(height: 16),
+              _buildHorizontalSongList(songProvider.songs.skip(5).take(5).toList()),
+              
+              const SizedBox(height: 100),
+            ]),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
-        ),
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  Widget _buildQuickAccessSection(BuildContext context, SongProvider songProvider) {
+    final songs = songProvider.songs.take(6).toList();
+    
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 3,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: songs.length,
+      itemBuilder: (context, index) {
+        return _buildQuickAccessCard(songs[index]);
+      },
+    );
+  }
+
+  Widget _buildQuickAccessCard(Song song) {
+    return Card(
+      child: InkWell(
+        onTap: () {},
         child: Row(
           children: [
-            Icon(icon, color: AppTheme.white, size: 24),
-            const SizedBox(width: 12),
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppTheme.lightBlue, AppTheme.primaryBlue],
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(8),
+                  bottomLeft: Radius.circular(8),
+                ),
+              ),
+              child: const Icon(Icons.music_note, color: AppTheme.white),
+            ),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.white,
-                    ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  song.title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.white.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
           ],
@@ -249,80 +346,87 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(BuildContext context, String title, String subtitle) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.mediumGray,
-                ),
-          ),
-        ],
-      ),
+  Widget _buildSectionHeader(BuildContext context, String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ],
     );
   }
 
-  Widget _buildSongList(List<Song> songs) {
+  Widget _buildSongGrid(List<Song> songs) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 0.7,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: songs.length,
+      itemBuilder: (context, index) {
+        return _buildSongCard(songs[index]);
+      },
+    );
+  }
+
+  Widget _buildHorizontalSongList(List<Song> songs) {
     return SizedBox(
-      height: 200,
+      height: 240,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: songs.length,
         itemBuilder: (context, index) {
-          return _buildSongCard(songs[index]);
+          return Padding(
+            padding: EdgeInsets.only(right: index < songs.length - 1 ? 16 : 0),
+            child: SizedBox(
+              width: 160,
+              child: _buildSongCard(songs[index]),
+            ),
+          );
         },
       ),
     );
   }
 
   Widget _buildSongCard(Song song) {
-    return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 12),
-      child: Card(
+    return Card(
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Album Art
-            Container(
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppTheme.lightBlue.withValues(alpha: 0.3),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
+            // Album art
+            AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.lightBlue, AppTheme.primaryBlue],
+                  ),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(8),
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.music_note,
+                    size: 48,
+                    color: AppTheme.white,
+                  ),
                 ),
               ),
-              child: song.metadata.albumArt != null
-                  ? Image.network(
-                      song.metadata.albumArt!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                          child: Icon(
-                            Icons.music_note,
-                            size: 48,
-                            color: AppTheme.primaryBlue,
-                          ),
-                        );
-                      },
-                    )
-                  : const Center(
-                      child: Icon(
-                        Icons.music_note,
-                        size: 48,
-                        color: AppTheme.primaryBlue,
-                      ),
-                    ),
             ),
             Padding(
               padding: const EdgeInsets.all(12),
@@ -358,93 +462,56 @@ class HomeTab extends StatelessWidget {
   }
 }
 
+// Placeholder tabs
+class SearchTab extends StatelessWidget {
+  const SearchTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Search',
+              style: Theme.of(context).textTheme.displaySmall,
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              decoration: const InputDecoration(
+                hintText: 'What do you want to learn?',
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class LibraryTab extends StatelessWidget {
   const LibraryTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final songProvider = Provider.of<SongProvider>(context);
-    
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Library'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Implement search
-            },
-          ),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your Library',
+              style: Theme.of(context).textTheme.displaySmall,
+            ),
+            const SizedBox(height: 24),
+            const Text('Your saved songs and playlists will appear here'),
+          ],
+        ),
       ),
-      body: songProvider.isLoading && songProvider.songs.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : songProvider.songs.isEmpty
-              ? const Center(child: Text('No songs in library'))
-              : GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: songProvider.songs.length,
-                  itemBuilder: (context, index) {
-                    final song = songProvider.songs[index];
-                    return Card(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppTheme.lightBlue.withValues(alpha: 0.3),
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(12),
-                                ),
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.music_note,
-                                  size: 48,
-                                  color: AppTheme.primaryBlue,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  song.title,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  song.artist,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppTheme.mediumGray,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
     );
   }
 }
@@ -455,55 +522,49 @@ class TranscribeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Transcribe'),
-      ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(48.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.add_circle,
-                size: 80,
-                color: AppTheme.primaryBlue,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Transcribe Audio',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.primaryBlue, AppTheme.darkBlue],
+                  ),
+                  borderRadius: BorderRadius.circular(60),
+                ),
+                child: const Icon(
+                  Icons.add,
+                  size: 60,
+                  color: AppTheme.white,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Upload audio or paste YouTube URL',
+              const SizedBox(height: 32),
+              Text(
+                'Create Transcription',
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Upload audio or paste a YouTube URL to get started',
+                style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.mediumGray),
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Implement file upload
-                },
+                onPressed: () {},
                 icon: const Icon(Icons.upload_file),
-                label: const Text('Upload Audio File'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                ),
+                label: const Text('Upload Audio'),
               ),
               const SizedBox(height: 16),
               OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: Implement YouTube URL
-                },
+                onPressed: () {},
                 icon: const Icon(Icons.link),
                 label: const Text('Paste YouTube URL'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                ),
               ),
             ],
           ),
@@ -513,104 +574,45 @@ class TranscribeTab extends StatelessWidget {
   }
 }
 
-class ProfileTab extends StatelessWidget {
-  const ProfileTab({super.key});
+class LikedSongsTab extends StatelessWidget {
+  const LikedSongsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final themeService = Provider.of<ThemeService>(context);
-    
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const Center(
-            child: Column(
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: AppTheme.primaryBlue,
-                  child: Icon(Icons.person, size: 50, color: AppTheme.white),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Music Learner',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.primaryBlue, AppTheme.darkBlue],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.favorite,
+                    color: AppTheme.white,
+                    size: 32,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(width: 16),
                 Text(
-                  'learner@tansen.app',
-                  style: TextStyle(color: AppTheme.mediumGray),
+                  'Liked Songs',
+                  style: Theme.of(context).textTheme.displaySmall,
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 32),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.palette),
-                  title: const Text('Dark Mode'),
-                  trailing: Switch(
-                    value: themeService.isDarkMode,
-                    onChanged: (_) => themeService.toggleTheme(),
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.music_note),
-                  title: const Text('Skill Level'),
-                  subtitle: const Text('Intermediate'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {},
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.piano),
-                  title: const Text('Primary Instrument'),
-                  subtitle: const Text('Piano'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.download),
-                  title: const Text('Downloads'),
-                  subtitle: const Text('0 / 50 songs'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {},
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.favorite),
-                  title: const Text('Favorites'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {},
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.history),
-                  title: const Text('Practice History'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            const Text('Songs you like will appear here'),
+          ],
+        ),
       ),
     );
   }
