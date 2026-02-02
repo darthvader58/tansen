@@ -4,6 +4,9 @@
 .env.*.local
 backend/.env
 
+.github/
+.kiro/
+
 # Firebase Credentials
 firebase-credentials.json
 *-firebase-adminsdk-*.json
