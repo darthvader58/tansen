@@ -4,6 +4,9 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/theme_service.dart';
 import '../../providers/practice_provider.dart';
 import '../practice/ai_teaching_screen.dart';
+import 'edit_profile_screen.dart';
+import 'notifications_screen.dart';
+import '../practice/ai_teaching_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -573,14 +576,28 @@ class ProfileScreen extends StatelessWidget {
             leading: const Icon(Icons.person),
             title: const Text('Edit Profile'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
+                ),
+              );
+            },
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.notifications),
             title: const Text('Notifications'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsScreen(),
+                ),
+              );
+            },
           ),
           const Divider(height: 1),
           ListTile(
